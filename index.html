@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complex Statechart Editor</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/chart.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-info sticky-top">
+        <a class="navbar-brand" href="#">Complex Statechart Editor</a>
+    </nav>
+
+    <div class="container-fluid border-top mb-2">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-info sidebar vh-100" id="sidebar">
+                <div class="position-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item border-top mb-2">
+                            <button id="addState" class="btn btn-primary btn-block">Add State</button>
+                        </li>
+                        <li class="nav-item border-top mb-2">
+                            <button id="addTransition" class="btn btn-primary btn-block">Add Transition</button>
+                        </li>
+                        <li class="nav-item border-top mb-2">
+                            <button id="circularLayout" class="btn btn-secondary btn-block">Circular Layout</button>
+                        </li>
+                        <li class="nav-item border-top mb-2">
+                            <button id="dagLayout" class="btn btn-secondary btn-block">DAG Layout</button>
+                        </li>
+                        <li class="nav-item border-top mb-2">
+                            <button id="colaLayout" class="btn btn-secondary btn-block">Cola Layout</button>
+                        </li>
+                        <li class="nav-item border-top mb-2">
+                            <input type="file" id="jsonFileInput" class="form-control-file">
+                        </li>
+                        <li class="nav-item border-top mb-2">
+                            <button id="loadJSON" class="btn btn-success btn-block">Load JSON</button>
+                        </li>
+                        <li class="nav-item border-top mb-2">
+                            <button id="loadGraphvizJSON" class="btn btn-success btn-block">Load Graphviz JSON</button>
+                        </li>
+                        <li class="nav-item border-top mb-2">
+                            <button id="loaddrawioXML" class="btn btn-success btn-block">Load drawio XML</button>
+                        </li>
+                        <li class="nav-item border-top mb-2">
+                            <button id="measureButton" class="btn btn-primary btn-block">Show Measurements</button>
+                            <p id="measurementResult" class="mt-3">Edge Crossings: N/A</p>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-10 ms-sm-auto col-lg-10 canvas-container" id="canvas-container" style="position: relative;">
+                <canvas class="canvas" id="canvas" style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
+                <div id="cy" style="position: absolute; top: 0; left: 0; z-index: 2;"></div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="js/chart.js"></script>
+</body>
+
+</html>

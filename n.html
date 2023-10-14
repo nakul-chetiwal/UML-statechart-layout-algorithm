@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cytoscape with Grid Canvas</title>
+    <script src="https://unpkg.com/cytoscape@3.19.0/dist/cytoscape.min.js"></script>
+    <style>
+
+
+#canvasContainer {
+    width: 100vw;   /* 100% of viewport width */
+    height: 100vh;  /* 100% of viewport height */
+    overflow: auto;
+    position: relative;
+}
+
+#gridCanvas, #cyContainer {
+    width: 100vw;
+    height: 100vh;
+}
+
+
+
+    </style>
+</head>
+
+<body>
+
+<div id="canvasContainer" style="position: relative;">
+    <canvas id="gridCanvas" style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
+    <div id="cyContainer" style="position: absolute; top: 0; left: 0; z-index: 2;"></div>
+</div>
+
+<script>
+    // Grid drawing code
+    const canvas = document.getElementById('gridCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set the canvas size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Grid settings
+    const gridSize = 20; 
+    const gridColor = '#ddd'; 
+
+    function drawGrid() {
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+
+        // Vertical lines
+        for (let x = gridSize; x < canvas.width; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+
+        // Horizontal lines
+        for (let y = gridSize; y < canvas.height; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+    }
+
+    drawGrid();
+
+    // Initialize Cytoscape
+    const cy = cytoscape({
+        container: document.getElementById('cyContainer'), 
+
+        elements: [
+                    // Define your state chart elements here
+                    // Example:
+                    { data: { id: 'A' } },
+                    { data: { id: 'B' } },
+                    { data: { id: 'C' } },
+                    { data: { id: 'D' } },
+                    { data: { id: 'E' } },
+                    { data: { id: 'F' } },
+                    // Define edges between states
+                    { data: { source: 'A', target: 'B' } },
+                    { data: { source: 'A', target: 'C' } },
+                    { data: { source: 'B', target: 'D' } },
+                    { data: { source: 'B', target: 'E' } },
+                    { data: { source: 'C', target: 'F' } },
+                ],
+                style: [
+                    // Define your node and edge styles here
+                    // Example:
+                    {
+                        selector: 'node',
+                        style: {
+                            width: 80,
+                            height: 40,
+                            'background-color': '#0078d4',
+                            label: 'data(id)',
+                            'text-halign': 'center',
+                            'text-valign': 'center',
+                            color: 'white',
+                        },
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'curve-style': 'bezier',
+                            width: 2,
+                            'line-color': '#ccc',
+                            'target-arrow-color': '#ccc',
+                            'target-arrow-shape': 'triangle',
+                        },
+                    },
+                ],
+        layout: {
+            name: 'grid',
+            rows: 1
+        },
+        userZoomingEnabled: false,
+    zoomingEnabled: false 
+    });
+    //cy.layout({ name: 'grid', rows: 1 }).run();
+
+    // Resize cytoscape to fit the container
+    cy.resize();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        cy.resize();
+    });
+</script>
+
+</body>
+
+</html>

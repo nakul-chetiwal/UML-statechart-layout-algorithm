@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>State Chart Diagram</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script> <!-- Add dagre library -->
+
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+
+    <style>
+        /* Define CSS styles for the container */
+        #cy-container {
+            height: 600px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Create a container for the graph -->
+    <div id="cy-container"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var cy = cytoscape({
+                container: document.getElementById('cy-container'),
+                elements: [
+                    // Define your state chart elements here
+                    // Example:
+                    { data: { id: 'A' } },
+                    { data: { id: 'B' } },
+                    { data: { id: 'C' } },
+                    { data: { id: 'D' } },
+                    { data: { id: 'E' } },
+                    { data: { id: 'F' } },
+                    // Define edges between states
+                    { data: { source: 'A', target: 'B' } },
+                    { data: { source: 'A', target: 'C' } },
+                    { data: { source: 'B', target: 'D' } },
+                    { data: { source: 'B', target: 'E' } },
+                    { data: { source: 'C', target: 'F' } },
+                ],
+                layout: {
+                    name: 'dagre', // Use the DAG layout
+                    nodeSep: 100, // Set the horizontal spacing between nodes
+                    edgeSep: 50, // Set the vertical spacing between edges
+                },
+                style: [
+                    // Define your node and edge styles here
+                    // Example:
+                    {
+                        selector: 'node',
+                        style: {
+                            width: 80,
+                            height: 40,
+                            'background-color': '#0078d4',
+                            label: 'data(id)',
+                            'text-halign': 'center',
+                            'text-valign': 'center',
+                            color: 'white',
+                        },
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'curve-style': 'bezier',
+                            width: 2,
+                            'line-color': '#ccc',
+                            'target-arrow-color': '#ccc',
+                            'target-arrow-shape': 'triangle',
+                        },
+                    },
+                ],
+            });
+        });
+    </script>
+</body>
+
+</html>

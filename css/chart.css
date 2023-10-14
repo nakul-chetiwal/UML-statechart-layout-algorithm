@@ -1,0 +1,34 @@
+html,
+body {
+    height: 100%;
+}
+
+/* Add some basic styles for the canvas */
+body {
+    margin: 0;
+    overflow: hidden;
+}
+#canvas-container {
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    position: relative;
+}
+
+#cy, #canvas {
+    width: 100vw;
+    height: 100vh;
+}
+
+
+/* Add custom style for node label editing */
+.node-label-input {
+    display: none;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.node-label-input:focus {
+    border: 1px solid #007bff;
+}

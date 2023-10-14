@@ -1,0 +1,26 @@
+{
+    "elements": {
+      "nodes": [
+        { "data": { "id": "A", "label": "Node A", "color": "red", "shape": "ellipse" } },
+        { "data": { "id": "B", "label": "Node B", "color": "blue", "shape": "rectangle" } },
+        { "data": { "id": "C", "label": "Node C", "color": "green", "shape": "triangle" } },
+        { "data": { "id": "D", "label": "Node D", "color": "orange", "shape": "hexagon" } },
+        { "data": { "id": "E", "label": "Node E", "color": "purple", "shape": "octagon" } },
+        { "data": { "id": "F", "label": "Node F", "color": "purple", "shape": "octagon" } }
+      ],
+      "edges": [
+        { "data": { "source": "A", "target": "B", "label": "Edge 1" } },
+        { "data": { "source": "B", "target": "C", "label": "Edge 2" } },
+        { "data": { "source": "C", "target": "D", "label": "Edge 3" } },
+        { "data": { "source": "D", "target": "E", "label": "Edge 4" } },
+        { "data": { "source": "E", "target": "A", "label": "Edge 5" } },
+        { "data": { "source": "A", "target": "C", "label": "Edge 5" } },
+        { "data": { "source": "A", "target": "D", "label": "Edge 5" } },
+        { "data": { "source": "B", "target": "D", "label": "Edge 5" } },
+        { "data": { "source": "B", "target": "E", "label": "Edge 5" } },
+        { "data": { "source": "C", "target": "E", "label": "Edge 5" } },
+        { "data": { "source": "D", "target": "F", "label": "Edge 5" } },
+        { "data": { "source": "B", "target": "F", "label": "Edge 5" } }
+      ]
+    }
+  }
