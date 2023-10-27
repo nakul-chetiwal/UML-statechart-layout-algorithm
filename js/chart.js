@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
             name: 'grid'
         },
         userZoomingEnabled: false,
-        zoomingEnabled: false 
+        zoomingEnabled: false
     });
 
     // Variable to keep track of the currently selected element (node or edge)
@@ -83,13 +83,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('addState').addEventListener('click', function () {
         var newStateId = 'State' + Date.now();
-        
+
         // Calculate position based on nodeCounter
         let xPosition = (nodeCounter % 5) * 150 + 100;  // 150 is the distance between nodes, change as needed
         let yPosition = Math.floor(nodeCounter / 5) * 150 + 100;
-    
+
         cy.add({ data: { id: newStateId, label: 'State' }, position: { x: xPosition, y: yPosition } });
-        
+
         nodeCounter++;  // Increment the counter for the next node
     });
 
@@ -266,8 +266,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to load a JSON file and apply it to the chart
     function loadGraphVizJsonData() {
+        let startTime = new Date().getTime();
         var input = document.getElementById('jsonFileInput');
         var file = input.files[0];
+        var containerHeight = document.getElementById('cy').clientHeight;  //need container to height to flip the y- axis
 
         if (!file) {
             alert('Please select a JSON file.');
@@ -288,11 +290,24 @@ document.addEventListener('DOMContentLoaded', function () {
             // Extract nodes and edges from Graphviz data and convert to Cytoscape.js format
             graphvizData.objects.forEach((object) => {
                 if (object.name) {
+                    let position;
+
+                    if (object.pos) {
+                        const coords = object.pos.split(',');
+                        position = {
+                            x: parseInt(coords[0].trim(), 10),
+                            y: containerHeight - parseInt(coords[1].trim(), 10)  // Flip the y-coordinate
+                        };
+                    } else {
+                        position = undefined;
+                    }
+
                     cyData.nodes.push({
                         data: {
                             id: object.name,
                             // You can map other attributes as needed, e.g., label, color, shape, etc.
                         },
+                        position: position,  // Set the position here
                     });
                 }
             });
@@ -314,11 +329,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log(cyData);
 
                 cy.add(cyData);
-                cy.layout({ name: 'grid' }).run();
+                // cy.layout({ name: 'preset' }).run();
+            });
+            cy.ready(function () {
+                cy.fit();
             });
         };
 
         reader.readAsText(file);
+        let endTime = new Date().getTime();
+        let duration = endTime - startTime;
+        console.log('Layout took: ' + duration + 'ms');
+        document.getElementById('measurementResult').textContent = 'Layout took: ' + duration + 'ms';
     }
 
     document.getElementById('loadGraphvizJSON').addEventListener('click', loadGraphVizJsonData);
