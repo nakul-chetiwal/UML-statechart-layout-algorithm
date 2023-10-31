@@ -47,6 +47,19 @@
                         <li class="nav-item border-top mb-2">
                             <button id="loaddrawioXML" class="btn btn-success btn-block">Load drawio XML</button>
                         </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-8 ms-sm-auto col-lg-8 canvas-container" id="canvas-container"
+                style="position: relative;">
+                <canvas class="canvas" id="canvas" style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
+                <div id="cy" style="position: absolute; top: 0; left: 0; z-index: 2;"></div>
+            </main>
+
+            <nav class="col-md-2 d-none d-md-block sidebar vh-100" id="rightsidebar">
+                <div class="position-sticky">
+                    <ul class="nav flex-column">
                         <li class="nav-item border-top mb-2">
                             <button id="measureButton" class="btn btn-primary btn-block">Show Measurements</button>
                             <p id="measurementResult" class="mt-3">Edge Crossings: N/A</p>
@@ -54,13 +67,6 @@
                     </ul>
                 </div>
             </nav>
-
-            <main class="col-md-10 ms-sm-auto col-lg-10 canvas-container" id="canvas-container"
-                style="position: relative;">
-                <canvas class="canvas" id="canvas" style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
-                <div id="cy" style="position: absolute; top: 0; left: 0; z-index: 2;"></div>
-            </main>
-
         </div>
     </div>
 

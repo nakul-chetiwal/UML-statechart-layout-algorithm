@@ -8,9 +8,9 @@ html {
 }
 
 #canvas-container {
-    width: 80vw;
+    width: 100%;
     /* or 100vw if you want it to take full width */
-    height: 80vh;
+    max-height: 100%;
     /* or 100vh if you want it to take full height */
     overflow: auto;
     /* this allows scrolling */
@@ -31,9 +31,9 @@ html {
 }
 
 #canvas {
-    width: 80vw;
+    max-width: 100%;
     /* Same as #cy */
-    height: 80vh;
+    max-height: 100%;
     /* Same as #cy */
     position: absolute;
     top: 0;
