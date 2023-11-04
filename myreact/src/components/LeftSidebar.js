@@ -9,6 +9,9 @@ cytoscape.use(dagre);
 
 function LeftSidebar({ cy }) {
 
+    const fileInputRef = useRef(null);
+
+
     const changeLayout = (layoutName) => {
         cy.layout({
             name: layoutName,
@@ -17,9 +20,19 @@ function LeftSidebar({ cy }) {
         }).run();
     };
 
-    const loadCytoscapeJson = (event) => {
-        const file = event.target.files[0];
 
+    const handleLoadJsonClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            loadCytoscapeJsonFromFile(file);
+        }
+    };
+
+    const loadCytoscapeJsonFromFile = (file) => {
         if (!file) {
             alert('Please select a file.');
             return;
@@ -86,10 +99,13 @@ function LeftSidebar({ cy }) {
                         <button onClick={() => changeLayout('dagre')} className="btn btn-secondary btn-block">DAG Layout</button>
                     </li>
                     <li className="nav-item border-top mb-2">
-                        <input type="file" id="jsonFileInput" className="form-control-file" onChange={loadCytoscapeJson} />
-                    </li>
-                    <li className="nav-item border-top mb-2">
-                        <button className="btn btn-success btn-block">Load JSON</button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            style={{ display: 'none' }}
+                        />
+                        <button onClick={handleLoadJsonClick}>Load JSON</button>
                     </li>
                     <li className="nav-item border-top mb-2">
                         <button id="loadGraphvizJSON" className="btn btn-success btn-block">Load Graphviz JSON</button>
