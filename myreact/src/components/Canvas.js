@@ -9,7 +9,7 @@ cytoscape.use(gridGuide);
 
 const cellSize = 50;
 
-function Canvas({ measurement, setMeasurement }) {
+function Canvas({ measurement, setMeasurement, setCy }) {
     const cyRef = useRef(null);
 
     const canvasWidth = 800;
@@ -73,7 +73,33 @@ function Canvas({ measurement, setMeasurement }) {
                 };
                 quadtree.insert(point);
                 checkOcclusionUsingQuadtree(node, quadtree);
+
+
+                // Add a rectangle visualization for the node's boundary
+                /*let boundary = node.boundary; // Assuming each node has a 'boundary' property
+                cy.add({
+                    group: 'nodes',
+                    data: { id: 'rect_' + node.id() },
+                    position: { x: boundary.x, y: boundary.y },
+                    classes: 'boundary-rectangle'
+                });*/
             });
+
+            cy.style()
+                .selector('.boundary-rectangle')
+                .css({
+                    'shape': 'rectangle',
+                    'width': 'data(boundary.w)',  // Assuming boundary has a width property
+                    'height': 'data(boundary.h)', // Assuming boundary has a height property
+                    'background-color': 'transparent',
+                    'border-color': '#FF0000',
+                    'border-width': 2,
+                    'events': 'no',
+                    'user-draggable': 'no',
+                    'user-selectable': 'no'
+                })
+                .update();
+
 
             // Handle node movement
             cy.on('dragfreeon position', 'node', (evt) => {
@@ -87,7 +113,9 @@ function Canvas({ measurement, setMeasurement }) {
                 };
                 quadtree.insert(point);
                 checkOcclusionUsingQuadtree(node, quadtree);
+                // Add a rectangle visualization for the node's boundary
             });
+            setCy(cy);
         }
     }, []);
 
