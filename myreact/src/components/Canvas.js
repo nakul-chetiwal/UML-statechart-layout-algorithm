@@ -9,7 +9,7 @@ cytoscape.use(gridGuide);
 
 const cellSize = 50;
 
-function Canvas({ measurement, setMeasurement, setCy }) {
+function Canvas({ measurement, setMeasurement, setCy, updateContainerHeight }) {
     const cyRef = useRef(null);
 
     const canvasWidth = 800;
@@ -63,14 +63,13 @@ function Canvas({ measurement, setMeasurement, setCy }) {
 
             // Add nodes to grid when they're added to cytoscape
             cy.on('add', 'node', (evt) => {
-                handleNodeOcclusion(evt.target, cy);
-
                 let node = evt.target;
                 let point = {
                     x: node.position().x,
                     y: node.position().y,
-                    data: node // Store the node reference in the point data
+                    data: node
                 };
+                handleNodeOcclusion(node, cy);
                 quadtree.insert(point);
                 checkOcclusionUsingQuadtree(node, quadtree);
 
@@ -103,23 +102,24 @@ function Canvas({ measurement, setMeasurement, setCy }) {
 
             // Handle node movement
             cy.on('dragfreeon position', 'node', (evt) => {
-                handleNodeOcclusion(evt.target, cy);
-
                 let node = evt.target;
                 let point = {
                     x: node.position().x,
                     y: node.position().y,
-                    data: node // Store the node reference in the point data
+                    data: node
                 };
+                handleNodeOcclusion(node, cy);
                 quadtree.insert(point);
                 checkOcclusionUsingQuadtree(node, quadtree);
-                // Add a rectangle visualization for the node's boundary
             });
             setCy(cy);
+            updateContainerHeight(cyRef.current.clientHeight);
         }
     }, []);
 
-    //rudimentary approach
+
+
+    //rudimentary node occlusion approach
     const handleNodeOcclusion = (node, cy) => {
         let overlappingNodes = cy.nodes().filter((otherNode) => {
             if (node === otherNode) return false; // Don't check against itself
@@ -142,7 +142,7 @@ function Canvas({ measurement, setMeasurement, setCy }) {
         });
     };
 
-    //Quadtree approch
+    //Quadtree node occlusion approch
     const checkOcclusionUsingQuadtree = (node, quadtree) => {
         let range = new Rectangle(node.position().x, node.position().y, node.outerWidth(), node.outerHeight());
         let potentialOverlaps = [];

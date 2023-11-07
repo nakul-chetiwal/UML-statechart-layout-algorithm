@@ -7,11 +7,14 @@ import dagre from 'cytoscape-dagre';
 cytoscape.use(dagre);
 
 
-function LeftSidebar({ cy }) {
+function LeftSidebar({ cy, containerHeight }) {
 
     const fileInputRef = useRef(null);
+    const [layoutDuration, setLayoutDuration] = useState('');
 
 
+
+    // Change layout through cytoscape
     const changeLayout = (layoutName) => {
         cy.layout({
             name: layoutName,
@@ -20,12 +23,12 @@ function LeftSidebar({ cy }) {
         }).run();
     };
 
-
+    //load json from cytoscape
     const handleLoadJsonClick = () => {
         fileInputRef.current.click();
     };
 
-    const handleFileChange = (event) => {
+    const handleLoadJsonFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
             loadCytoscapeJsonFromFile(file);
@@ -80,41 +83,193 @@ function LeftSidebar({ cy }) {
         reader.readAsText(file);
     };
 
+    //Drawio
+
+    // Function to trigger the file input
+    const handleDrawIoFileInputClick = () => {
+        document.getElementById('drawIoXMLFileInput').click();
+    };
+
+    // Function to parse Draw.io XML to Cytoscape JSON
+    const parseXmlToCytoscape = (xmlDoc) => {
+        const json = {
+            nodes: [],
+            edges: [],
+        };
+
+        // Extract nodes
+        xmlDoc.querySelectorAll('mxCell[parent="1"][vertex="1"]').forEach((node) => {
+            const id = node.getAttribute('id');
+            const label = node.getAttribute('value');
+            const x = parseFloat(node.querySelector('mxGeometry').getAttribute('x'));
+            const y = parseFloat(node.querySelector('mxGeometry').getAttribute('y'));
+
+            json.nodes.push({ data: { id, label }, position: { x, y } });
+        });
+
+        // Extract edges
+        xmlDoc.querySelectorAll('mxCell[parent="1"][edge="1"]').forEach((edge) => {
+            const id = edge.getAttribute('id');
+            const source = edge.getAttribute('source');
+            const target = edge.getAttribute('target');
+
+            json.edges.push({ data: { id, source, target } });
+        });
+
+        cy.batch(function () {
+            cy.elements().remove();
+            console.log(json);
+            cy.add(json);
+            cy.layout({ name: 'grid' }).run();
+        });
+    };
+
+    // Function to load a Draw.io XML file and apply it to the Cytoscape
+    const loadDrawIoXML = (event) => {
+        const file = event.target.files[0];
+
+        if (!file) {
+            alert('Please select a XML file.');
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(e.target.result, 'text/xml');
+            parseXmlToCytoscape(xmlDoc);
+        };
+
+        reader.readAsText(file);
+    };
+
+    //Graphviz
+
+    // Function to trigger the file input
+    const handleGraphVizJsonFileInputClick = () => {
+        document.getElementById('graphVizJsonFileInput').click();
+    };
+
+    // Function to load a Draw.io XML file and apply it to the Cytoscape
+    const loadGraphvizJson = (event) => {
+        const file = event.target.files[0];
+
+        if (!file) {
+            alert('Please select a JSON file.');
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            const graphvizData = JSON.parse(e.target.result);
+            parseGraphvizJsonToCytoscapeJson(graphvizData);
+        };
+
+        reader.readAsText(file);
+    };
+
+    // Function to load a Graphviz json and apply it to the Cytoscape
+    const parseGraphvizJsonToCytoscapeJson = (graphvizData) => {
+        const startTime = new Date().getTime();
+
+        const cyElements = {
+            nodes: [],
+            edges: [],
+        };
+
+        // Process nodes
+        graphvizData.objects.forEach((object) => {
+            if (object.name && object.pos) {
+                const coords = object.pos.split(',');
+                const position = {
+                    x: parseFloat(coords[0]),
+                    y: containerHeight - parseFloat(coords[1]), // Flip the y-coordinate
+                };
+                cyElements.nodes.push({
+                    data: { id: object.name },
+                    position,
+                });
+            }
+        });
+
+        // Process edges
+        graphvizData.edges.forEach((edge) => {
+            if (edge.tail !== undefined && edge.head !== undefined) {
+                cyElements.edges.push({
+                    data: {
+                        id: `edge-${edge.tail}-${edge.head}`,
+                        source: graphvizData.objects[edge.tail].name,
+                        target: graphvizData.objects[edge.head].name,
+                    },
+                });
+            }
+        });
+
+        cy.batch(function () {
+            cy.elements().remove();
+            console.log(cyElements);
+            cy.add(cyElements);
+        });
+
+        cy.ready(function () {
+            cy.fit();
+        });
+
+        const endTime = new Date().getTime();
+        const duration = endTime - startTime;
+        console.log('Layout took: ' + duration + 'ms');
+        setLayoutDuration(`Layout took: ${duration}ms`);
+    };
 
 
     return (
-        <nav className="col-md-2 d-none d-md-block bg-info vh-100" id="sidebar">
-            <div className="position-sticky">
-                <ul className="nav flex-column">
-                    <li className="nav-item border-top mb-2">
-                        <button id="addState" className="btn btn-primary btn-block">Add State</button>
-                    </li>
-                    <li className="nav-item border-top mb-2">
-                        <button id="addTransition" className="btn btn-primary btn-block">Add Transition</button>
-                    </li>
-                    <li className="nav-item border-top mb-2">
-                        <button onClick={() => changeLayout('circle')} className="btn btn-secondary btn-block">Circular Layout</button>
-                    </li>
-                    <li className="nav-item border-top mb-2">
-                        <button onClick={() => changeLayout('dagre')} className="btn btn-secondary btn-block">DAG Layout</button>
-                    </li>
-                    <li className="nav-item border-top mb-2">
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            style={{ display: 'none' }}
-                        />
-                        <button onClick={handleLoadJsonClick}>Load JSON</button>
-                    </li>
-                    <li className="nav-item border-top mb-2">
-                        <button id="loadGraphvizJSON" className="btn btn-success btn-block">Load Graphviz JSON</button>
-                    </li>
-                    <li className="nav-item border-top mb-2">
-                        <button id="loadDrawioXML" className="btn btn-success btn-block">Load draw.io XML</button>
-                    </li>
-                </ul>
-            </div>
+        <nav className="bg-light p-3 left-sidebar" style={{ width: '200px' }}>
+            <ul className="nav flex-column">
+                <li className="nav-item border-top mb-2">
+                    <button id="addState" className="btn btn-primary ">Add State</button>
+                </li>
+                <li className="nav-item border-top mb-2">
+                    <button id="addTransition" className="btn btn-primary ">Add Transition</button>
+                </li>
+                <li className="nav-item border-top mb-2">
+                    <button onClick={() => changeLayout('circle')} className="btn btn-secondary ">Circular Layout</button>
+                </li>
+                <li className="nav-item border-top mb-2">
+                    <button onClick={() => changeLayout('dagre')} className="btn btn-secondary ">DAG Layout</button>
+                </li>
+                <li className="nav-item border-top mb-2">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleLoadJsonFileChange}
+                        style={{ display: 'none' }}
+                        accept=".json"
+                    />
+                    <button onClick={handleLoadJsonClick} className="btn btn-success " >Load Cytoscape JSON</button>
+                </li>
+                <li className="nav-item border-top mb-2">
+                    <input
+                        type="file"
+                        id="graphVizJsonFileInput"
+                        style={{ display: 'none' }}
+                        onChange={loadGraphvizJson}
+                        accept=".json"
+                    />
+                    <button onClick={handleGraphVizJsonFileInputClick} className="btn btn-success ">Load Graphviz JSON</button>
+                </li>
+                <li className="nav-item border-top mb-2">
+                    <input
+                        type="file"
+                        id="drawIoXMLFileInput"
+                        style={{ display: 'none' }}
+                        onChange={loadDrawIoXML}
+                        accept=".xml"
+                    />
+                    <button onClick={handleDrawIoFileInputClick} className="btn btn-success ">Load draw.io XML</button>
+                </li>
+            </ul>
         </nav>
     );
 }
