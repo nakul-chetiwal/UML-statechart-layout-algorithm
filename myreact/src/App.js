@@ -27,18 +27,18 @@ function App() {
         <div className="d-flex flex-column h-100">
             <Header />
             <div className="d-flex flex-row flex-grow-1">
-                <LeftSidebar cy={cy} containerHeight={containerHeight} />
+                <LeftSidebar cy={cy} containerHeight={containerHeight} measurement={measurement} setMeasurement={setMeasurement} />
                 <Canvas
                     measurement={measurement}
                     setMeasurement={setMeasurement}
                     setCy={setCy}
                     updateContainerHeight={updateContainerHeight}
                 />
-                <RightSidebar
+                {/* <RightSidebar
                     measurement={measurement}
                     setMeasurement={setMeasurement}
                     cy={cy}
-                />
+                /> */}
             </div>
         </div>
     );

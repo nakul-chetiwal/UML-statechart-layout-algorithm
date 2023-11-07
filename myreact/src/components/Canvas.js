@@ -22,34 +22,32 @@ function Canvas({ measurement, setMeasurement, setCy, updateContainerHeight }) {
         if (cyRef.current) {
             const cy = cytoscape({
                 container: cyRef.current,
-                elements: [
-                    { data: { id: 'a' } },
-                    { data: { id: 'b' } },
-                    { data: { id: 'a-b', source: 'a', target: 'b' } },
-                ],
+
                 style: [
                     {
                         selector: 'node',
                         style: {
-                            'background-color': '#666',
+                            'background-color': '#66ccff',
                             'label': 'data(id)'
                         }
                     },
                     {
                         selector: 'edge',
                         style: {
-                            'width': 3,
-                            'line-color': '#ccc',
-                            'target-arrow-color': '#ccc',
-                            'target-arrow-shape': 'triangle'
+                            'curve-style': 'bezier',
+                            'target-arrow-shape': 'triangle',
+                            'target-arrow-color': '#ff9900',
+                            'line-color': '#666'
                         }
                     }
                 ],
+
                 layout: {
                     name: 'grid',
                     rows: 1
                 },
-                wheelSensitivity: 0
+                userZoomingEnabled: false,
+                // zoomingEnabled: false
             });
 
             cy.gridGuide({
@@ -64,6 +62,7 @@ function Canvas({ measurement, setMeasurement, setCy, updateContainerHeight }) {
             // Add nodes to grid when they're added to cytoscape
             cy.on('add', 'node', (evt) => {
                 let node = evt.target;
+                console.log("Adding Node**", node);
                 let point = {
                     x: node.position().x,
                     y: node.position().y,
@@ -112,6 +111,7 @@ function Canvas({ measurement, setMeasurement, setCy, updateContainerHeight }) {
                 quadtree.insert(point);
                 checkOcclusionUsingQuadtree(node, quadtree);
             });
+
             setCy(cy);
             updateContainerHeight(cyRef.current.clientHeight);
         }
@@ -162,8 +162,9 @@ function Canvas({ measurement, setMeasurement, setCy, updateContainerHeight }) {
         }
     };
 
+
     return (
-        <div className="p-3" style={{ flexGrow: 1, height: 'calc(100vh - 60px)', position: 'relative' }}>
+        <div className="p-3" style={{ flexGrow: 1, height: 'calc(100vh - 60px)', position: 'relative', maxHeight: 'calc(100vh - 60px)', maxWidth: 'calc(100dvw - 200px)' }}>
             <div ref={cyRef} style={{ width: '100%', height: '100%' }}></div>
         </div>
     );
