@@ -1,21 +1,33 @@
 // src/components/Sidebar.js
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 
 cytoscape.use(dagre);
 
 
-function LeftSidebar({ cy, containerHeight, measurement, setMeasurement }) {
+function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }) {
 
     const fileInputRef = useRef(null);
     const [layoutDuration, setLayoutDuration] = useState('');
+    const [highlightRectangles, setHighlightRectangles] = useState(false);
+    const [widthPadding, setWidthPadding] = useState(10);
+    const [heightPadding, setHeightPadding] = useState(10);
+    const [edgeLengths, setEdgeLengths] = useState({
+        average: 0,
+        longest: 0,
+        shortest: Infinity
+    });
 
-    const [rudimentaryOcclusionCount, setRudiMentaryOcclusionCount] = useState(0);
-    const [quadtreeOcclusionCount, setQuadtreeOcclusionCount] = useState(0)
+    // Event handlers to update the state
+    const handleWidthChange = (event) => {
+        setWidthPadding(event.target.value);
+    };
 
-
+    const handleHeightChange = (event) => {
+        setHeightPadding(event.target.value);
+    };
 
     // Change layout through cytoscape
     const changeLayout = (layoutName) => {
@@ -56,7 +68,6 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement }) {
 
                     if (cy && json.elements) {
                         cy.batch(() => {
-                            debugger;
                             cy.elements().remove();
                             cy.add(json.elements);
                             cy.layout({ name: 'grid' }).run();
@@ -223,14 +234,19 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement }) {
         const endTime = new Date().getTime();
         const duration = endTime - startTime;
         console.log('Layout took: ' + duration + 'ms');
-        setLayoutDuration(`Layout took: ${duration}ms`);
+        setLayoutDuration(duration + 'ms');
     };
 
     const showMesurements = () => {
-        setQuadtreeOcclusionCount(measurement?.quadtreeOcclusionCount)
-        setRudiMentaryOcclusionCount(measurement?.rudimentaryOcclusionCount)
+        const widthPad = document.getElementById('widthPadding').value;
+        const heightPad = document.getElementById('heightPadding').value;
+
+        const widthPaddingNum = Number(widthPad) || 0;
+        const heightPaddingNum = Number(heightPad) || 0;
 
         countEdgeCrossings(cy);
+        countNodeOcclusions(cy, widthPaddingNum, heightPaddingNum);
+        setEdgeLengths(calculateEdgeLengths(cy));
     };
 
     const edgesIntersect = (edge1, edge2) => {
@@ -266,7 +282,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement }) {
         let crossings = 0;
         const edges = cy.edges();
 
-      
+
         console.log("edges**", cy.on)
         for (let i = 0; i < edges.length - 1; i++) {
             for (let j = i + 1; j < edges.length; j++) {
@@ -286,8 +302,136 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement }) {
     };
 
 
+    const countNodeOcclusions = (cy, widthPadding, heightPadding) => {
+        let occlusions = 0;
+        const nodes = cy.nodes();
+
+        for (let i = 0; i < nodes.length - 1; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                if (nodesOverlap(nodes[i], nodes[j], widthPadding, heightPadding)) {
+                    occlusions++;
+                }
+            }
+        }
+
+        setMeasurement((prevMeasurement) => ({
+            ...prevMeasurement,
+            nodeOcclusionCount: occlusions,
+        }));
+    };
+
+    // Helper function to determine if two nodes overlap
+    const nodesOverlap = (node1, node2, widthPadding, heightPadding) => {
+        const n1 = node1.renderedBoundingBox();
+        const n2 = node2.renderedBoundingBox();
+
+        // Inflate the bounding boxes by widthPadding and heightPadding
+        const inflatedN1 = {
+            x1: n1.x1 - widthPadding,
+            y1: n1.y1 - heightPadding,
+            x2: n1.x2 + widthPadding,
+            y2: n1.y2 + heightPadding
+        };
+
+        const inflatedN2 = {
+            x1: n2.x1 - widthPadding,
+            y1: n2.y1 - heightPadding,
+            x2: n2.x2 + widthPadding,
+            y2: n2.y2 + heightPadding
+        };
+
+        // Check if the inflated bounding boxes intersect
+        return !(inflatedN2.x1 > inflatedN1.x2 ||
+            inflatedN2.x2 < inflatedN1.x1 ||
+            inflatedN2.y1 > inflatedN1.y2 ||
+            inflatedN2.y2 < inflatedN1.y1);
+    };
+
+
+    const toggleHighlight = () => {
+        if (highlightRectangles) {
+            const widthPad = document.getElementById('widthPadding').value;
+            const heightPad = document.getElementById('heightPadding').value;
+
+            const widthPaddingNum = Number(widthPad) || 0;
+            const heightPaddingNum = Number(heightPad) || 0;
+            cy.nodes().forEach(node => {
+                // Get the rendered bounding box of the node
+                let nodeBoundingBox = node.renderedBoundingBox();
+                // Define width and height of the rectangle with padding
+                let rectWidth = nodeBoundingBox.x2 - nodeBoundingBox.x1 + 2 * widthPaddingNum; // 10 is the widthPadding
+                let rectHeight = nodeBoundingBox.y2 - nodeBoundingBox.y1 + 2 * heightPaddingNum; // 10 is the heightPadding
+
+                // Define the position of the highlight rectangle to center it on the node
+                let position = {
+                    x: node.position('x') + 10 - nodeBoundingBox.w / 2, // Center the rectangle by adjusting x
+                    y: node.position('y') + 10 - nodeBoundingBox.h / 2  // Center the rectangle by adjusting y
+                };
+                // Add the highlight rectangle
+                cy.add({
+                    group: 'nodes',
+                    data: { id: 'highlight_' + node.id(), boundary: position },
+                    position: position,
+                    classes: 'highlight-rectangle',
+                    style: {
+                        'shape': 'rectangle',
+                        'width': rectWidth + 'px',
+                        'height': rectHeight + 'px',
+                        'border-width': '1px',
+                        'border-color': 'black',
+                        'background-opacity': 0, // This makes the node's background fully transparent
+
+                    }
+                });
+            });
+        } else {
+            cy.elements('.highlight-rectangle').remove();
+        }
+        setCy(cy);
+        setHighlightRectangles(!highlightRectangles);
+    }
+
+
+    const calculateEdgeLengths = (cy) => {
+        let totalLength = 0;
+        let longest = 0;
+        let shortest = Infinity;
+
+        cy.edges().forEach(edge => {
+            const sourcePosition = edge.source().position();
+            const targetPosition = edge.target().position();
+            const length = Math.sqrt(
+                Math.pow(sourcePosition.x - targetPosition.x, 2) +
+                Math.pow(sourcePosition.y - targetPosition.y, 2)
+            );
+
+            // Add to total length for average calculation
+            totalLength += length;
+
+            // Check for longest edge
+            if (length > longest) {
+                longest = length;
+            }
+
+            // Check for shortest edge
+            if (length < shortest) {
+                shortest = length;
+            }
+        });
+
+        const averageLength = totalLength / cy.edges().length;
+
+        return {
+            average: averageLength,
+            longest: longest,
+            shortest: shortest
+        };
+    };
+
+
+
     return (
-        <nav className="bg-light p-3 left-sidebar" style={{ width: '200px', maxHeight: "calc(100dvh - 60px)", overflow: "auto" }}>
+        <nav className="bg-light p-3 left-sidebar" style={{ width: '250px', maxHeight: "calc(100dvh - 60px)", overflow: "auto" }}>
             <ul className="nav flex-column">
                 <li className="nav-item border-top mb-2">
                     <button id="addState" className="btn btn-primary ">Add State</button>
@@ -334,12 +478,28 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement }) {
             </ul>
 
             <button onClick={showMesurements} className="btn btn-primary ">Show Mesurements</button>
-            <h2>Results</h2>
-            <p>Rudimentary Occlusions Count: {rudimentaryOcclusionCount}</p>
-            <p>QuadTree Occlusions Count: {quadtreeOcclusionCount}</p>
-            <p>Edge Crossing Count: {measurement.edgeCrossingCount}</p>
-            {/* <p>Edge Crossing Count: {measurement.edgeCrossingCount}</p>
-            <p>Edge Crossing Count: {measurement.edgeCrossingCount}</p> */}
+
+            <h1>Results</h1>
+            <p><b>Computational Efficiency: </b>{layoutDuration}</p>
+            <p><b>Edge Crossing Count: </b>{measurement.edgeCrossingCount}</p>
+            <div>
+                <p><b>Node occlusions: </b>{measurement.nodeOcclusionCount}
+                    <br />
+                    <label for="widthPadding">Width:</label>
+                    <input type="number" id="widthPadding" name="widthPadding" value={widthPadding} onChange={handleWidthChange} />
+
+                    <label for="heightPadding">Height:</label>
+                    <input type="number" id="heightPadding" name="heightPadding" value={heightPadding} onChange={handleHeightChange} />
+                    <br />
+                    <button onClick={toggleHighlight} className="btn btn-primary ">{highlightRectangles ? "Hide" : "Show"} boundary</button>
+                </p>
+            </div>
+            <div>
+                <p><b>Edge Lengths </b></p>
+                <p>Average Edge Length: {edgeLengths.average.toFixed(2)} px</p>
+                <p>Longest Edge Length: {edgeLengths.longest.toFixed(2)} px</p>
+                <p>Shortest Edge Length: {edgeLengths.shortest.toFixed(2)} px</p>
+            </div>
         </nav>
     );
 }
