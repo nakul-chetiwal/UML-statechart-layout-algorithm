@@ -265,10 +265,18 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
         const edges = cy.elements('edge');
         setNodeCount(nodes.length);
         setEdgeCount(edges.length);
-
+        calculateAspectRatio(cy);
         countEdgeCrossings(cy);
         countNodeOcclusions(cy, widthPaddingNum, heightPaddingNum);
         setEdgeLengths(calculateEdgeLengths(cy));
+    };
+
+    const calculateAspectRatio = (cy) => {
+        const boundingBox = cy.elements().boundingBox({});
+        const width = boundingBox.w;
+        const height = boundingBox.h;
+        const ratio = width / height;
+        setAspectRatio(ratio.toFixed(2)); // Keeping two decimal places for aspect ratio
     };
 
     const edgesIntersect = (edge1, edge2) => {
