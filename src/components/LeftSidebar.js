@@ -502,9 +502,6 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
                     <button onClick={() => changeLayout('grid')} className="btn btn-secondary ">Grid Layout</button>
                 </li>
                 <li className="nav-item border-top mb-2">
-                    <button onClick={() => changeLayout('breadthfirst')} className="btn btn-secondary ">Breadthfirst Layout</button>
-                </li>
-                <li className="nav-item border-top mb-2">
                     <button onClick={() => changeLayout('breadthfirst')} className="btn btn-warning">SC Auto Layout</button>
                 </li>
                 <li className="nav-item border-top mb-2">
