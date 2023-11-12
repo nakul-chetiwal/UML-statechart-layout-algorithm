@@ -15,7 +15,11 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
     const [widthPadding, setWidthPadding] = useState(10);
     const [heightPadding, setHeightPadding] = useState(10);
     const [showEdit, setShowEdit] = useState(false);
-
+    const [nodeCount, setNodeCount] = useState(0);
+    const [edgeCount, setEdgeCount] = useState(0);
+    const [edgeNodeOverlap, setEdgeNodeOverlap] = useState(8);
+    const [aspectRatio, setAspectRatio] = useState('900*500');
+    const [minimumDistanceBetweenNode, setMinimumDistanceBetweenNode] = useState('30px');
     const [edgeLengths, setEdgeLengths] = useState({
         average: 0,
         longest: 0,
@@ -251,11 +255,16 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
     };
 
     const showMesurements = () => {
-        const widthPad = document.getElementById('widthPadding').value;
-        const heightPad = document.getElementById('heightPadding').value;
+        const widthPad = widthPadding;
+        const heightPad = heightPadding;
 
         const widthPaddingNum = Number(widthPad) || 0;
         const heightPaddingNum = Number(heightPad) || 0;
+
+        const nodes = cy.elements('node');
+        const edges = cy.elements('edge');
+        setNodeCount(nodes.length);
+        setEdgeCount(edges.length);
 
         countEdgeCrossings(cy);
         countNodeOcclusions(cy, widthPaddingNum, heightPaddingNum);
@@ -503,8 +512,8 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
 
             <div className='result-data'><b><h1>Mesurements Results</h1></b></div>
             <div className='result-data'><p><b>Computational Efficiency: </b>{layoutDuration}</p></div>
-            <div className='result-data'><p><b>Total Node Count: </b>{layoutDuration}</p></div>
-            <div className='result-data'><p><b>Total Edge Count: </b>{layoutDuration}</p></div>
+            <div className='result-data'><p><b>Total Node Count: </b>{nodeCount}</p></div>
+            <div className='result-data'><p><b>Total Edge Count: </b>{edgeCount}</p></div>
             <div className='result-data'>
                 <p><b>Edge Lengths </b></p>
                 <p>Average Edge Length: {edgeLengths.average.toFixed(2)} px</p>
@@ -533,10 +542,9 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
                     </div>
                 )
             }
-
-            <div className='result-data'><p><b>Edge Node Overlap: </b>{layoutDuration}</p></div>
-            <div className='result-data'><p><b>Aspect Ratio: </b>{layoutDuration}</p></div>
-            <div className='result-data'><p><b>Minimum Distance Between Nodes: </b>{layoutDuration}</p></div>
+            <div className='result-data'><p><b>Edge Node Overlap: </b>{edgeNodeOverlap}</p></div>
+            <div className='result-data'><p><b>Aspect Ratio: </b>{aspectRatio}</p></div>
+            <div className='result-data'><p><b>Minimum Distance Between Nodes: </b>{minimumDistanceBetweenNode}</p></div>
 
             <div className='result-data'><b><h1>Analytical Results</h1></b></div>
             <div className='metrics'>
