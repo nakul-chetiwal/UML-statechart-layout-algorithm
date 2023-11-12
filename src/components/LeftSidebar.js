@@ -512,7 +512,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
                         style={{ display: 'none' }}
                         accept=".json"
                     />
-                    <button onClick={handleLoadJsonClick} className="btn btn-success " >Load Cytoscape JSON</button>
+                    <button onClick={handleLoadJsonClick} className="btn btn-success " >Import Standard JSON</button>
                 </li>
                 <li className="nav-item border-top mb-2">
                     <input
@@ -522,7 +522,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
                         onChange={loadGraphvizJson}
                         accept=".json"
                     />
-                    <button onClick={handleGraphVizJsonFileInputClick} className="btn btn-success ">Load Graphviz JSON</button>
+                    <button onClick={handleGraphVizJsonFileInputClick} className="btn btn-success ">Import Graphviz JSON</button>
                 </li>
                 <li className="nav-item border-top mb-2">
                     <input
@@ -532,7 +532,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
                         onChange={loadDrawIoXML}
                         accept=".xml"
                     />
-                    <button onClick={handleDrawIoFileInputClick} className="btn btn-success ">Load draw.io XML</button>
+                    <button onClick={handleDrawIoFileInputClick} className="btn btn-success ">Import draw.io XML</button>
                 </li>
             </ul>
 
