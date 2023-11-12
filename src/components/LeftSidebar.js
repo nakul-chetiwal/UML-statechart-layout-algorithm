@@ -18,7 +18,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
     const [nodeCount, setNodeCount] = useState(0);
     const [edgeCount, setEdgeCount] = useState(0);
     const [edgeNodeOverlap, setEdgeNodeOverlap] = useState(8);
-    const [aspectRatio, setAspectRatio] = useState('900*500');
+    const [aspectRatio, setAspectRatio] = useState(0);
     const [minimumDistanceBetweenNode, setMinimumDistanceBetweenNode] = useState('30px');
     const [edgeLengths, setEdgeLengths] = useState({
         average: 0,
@@ -269,6 +269,29 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
         countEdgeCrossings(cy);
         countNodeOcclusions(cy, widthPaddingNum, heightPaddingNum);
         setEdgeLengths(calculateEdgeLengths(cy));
+        calculateMinimumDistanceBetweenNodes(cy);
+    };
+
+    const calculateMinimumDistanceBetweenNodes = (cyInstance) => {
+        let minDist = Infinity;
+        const nodes = cyInstance.nodes();
+
+        // Compare each pair of nodes only once
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                const node1 = nodes[i];
+                const node2 = nodes[j];
+                const distance = Math.sqrt(
+                    Math.pow(node2.position('x') - node1.position('x'), 2) +
+                    Math.pow(node2.position('y') - node1.position('y'), 2)
+                );
+
+                if (distance < minDist) {
+                    minDist = distance;
+                }
+            }
+        }
+        setMinimumDistanceBetweenNode(minDist === Infinity ? 0 : minDist.toFixed(2));
     };
 
     const calculateAspectRatio = (cy) => {
@@ -444,7 +467,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
             }
 
             // Check for shortest edge
-            if (length < shortest) {
+            if (length < shortest && length != 0) {
                 shortest = length;
             }
         });
@@ -552,7 +575,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
             }
             <div className='result-data'><p><b>Edge Node Overlap: </b>{edgeNodeOverlap}</p></div>
             <div className='result-data'><p><b>Aspect Ratio: </b>{aspectRatio}</p></div>
-            <div className='result-data'><p><b>Minimum Distance Between Nodes: </b>{minimumDistanceBetweenNode}</p></div>
+            <div className='result-data'><p><b>Minimum Distance Between Nodes: </b>{minimumDistanceBetweenNode} px</p></div>
 
             <div className='result-data'><b><h1>Analytical Results</h1></b></div>
             <div className='metrics'>
