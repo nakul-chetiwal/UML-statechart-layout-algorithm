@@ -22,6 +22,68 @@
   color: #61dafb;
 }
 
-.left-sidebar button {
+
+.left-sidebar .btn {
   width: 100%;
+}
+
+.left-sidebar .nav-item {
+  margin-bottom: 0;
+  /* Remove margin-bottom from .nav-item */
+}
+
+.left-sidebar .nav-item .btn {
+  margin-bottom: 0.5rem;
+  /* Add margin-bottom to buttons instead */
+}
+
+.left-sidebar h1 {
+  font-size: 1.25rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.left-sidebar p {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.left-sidebar input[type="number"] {
+  width: calc(100% - 30px);
+  /* Full width input fields */
+  margin-bottom: 0.5rem;
+  /* Spacing after inputs */
+}
+
+.left-sidebar .btn-link {
+  padding: 0;
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
+
+.settings-div {
+  padding: 15px;
+  border: 1px solid grey;
+  margin: 10px 0;
+}
+
+.result-data {
+  padding: 5px 0;
+  border-bottom: 1px solid gray;
+}
+
+.result-data h1 {
+  color: deeppink;
+  font-size: 20px;
+}
+
+.metrics p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metrics input[type='number'] {
+  width: 50px !important;
+  margin: 0 !important;
 }

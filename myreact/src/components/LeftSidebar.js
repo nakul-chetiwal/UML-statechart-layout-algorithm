@@ -14,10 +14,25 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
     const [highlightRectangles, setHighlightRectangles] = useState(false);
     const [widthPadding, setWidthPadding] = useState(10);
     const [heightPadding, setHeightPadding] = useState(10);
+    const [showEdit, setShowEdit] = useState(false);
+
     const [edgeLengths, setEdgeLengths] = useState({
         average: 0,
         longest: 0,
-        shortest: Infinity
+        shortest: 0
+    });
+
+    const [metrics, setMetrics] = useState({
+        node_count: 1,
+        edge_count: 1,
+        node_occlusion: 1,
+        edge_crossing: 1,
+        edge_node_overlap: 1,
+        shortest_edge_length: 1,
+        average_edge_length: 1,
+        longest_edge_length: 1,
+        aspect_ratio: 1,
+        minimum_distance_between_node: 1,
     });
 
     // Event handlers to update the state
@@ -32,9 +47,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
     // Change layout through cytoscape
     const changeLayout = (layoutName) => {
         cy.layout({
-            name: layoutName,
-            nodeSep: 100,
-            edgeSep: 50,
+            name: layoutName
         }).run();
     };
 
@@ -431,7 +444,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
 
 
     return (
-        <nav className="bg-light p-3 left-sidebar" style={{ width: '250px', maxHeight: "calc(100dvh - 60px)", overflow: "auto" }}>
+        <nav className="bg-light p-3 left-sidebar shadow-sm" style={{ width: '280px', maxHeight: "calc(100dvh - 60px)", overflow: "auto" }}>
             <ul className="nav flex-column">
                 <li className="nav-item border-top mb-2">
                     <button id="addState" className="btn btn-primary ">Add State</button>
@@ -444,6 +457,15 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
                 </li>
                 <li className="nav-item border-top mb-2">
                     <button onClick={() => changeLayout('dagre')} className="btn btn-secondary ">DAG Layout</button>
+                </li>
+                <li className="nav-item border-top mb-2">
+                    <button onClick={() => changeLayout('grid')} className="btn btn-secondary ">Grid Layout</button>
+                </li>
+                <li className="nav-item border-top mb-2">
+                    <button onClick={() => changeLayout('breadthfirst')} className="btn btn-secondary ">Breadthfirst Layout</button>
+                </li>
+                <li className="nav-item border-top mb-2">
+                    <button onClick={() => changeLayout('breadthfirst')} className="btn btn-warning">SC Auto Layout</button>
                 </li>
                 <li className="nav-item border-top mb-2">
                     <input
@@ -479,28 +501,59 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
 
             <button onClick={showMesurements} className="btn btn-primary ">Show Mesurements</button>
 
-            <h1>Results</h1>
-            <p><b>Computational Efficiency: </b>{layoutDuration}</p>
-            <p><b>Edge Crossing Count: </b>{measurement.edgeCrossingCount}</p>
-            <div>
-                <p><b>Node occlusions: </b>{measurement.nodeOcclusionCount}
-                    <br />
-                    <label for="widthPadding">Width:</label>
-                    <input type="number" id="widthPadding" name="widthPadding" value={widthPadding} onChange={handleWidthChange} />
-
-                    <label for="heightPadding">Height:</label>
-                    <input type="number" id="heightPadding" name="heightPadding" value={heightPadding} onChange={handleHeightChange} />
-                    <br />
-                    <button onClick={toggleHighlight} className="btn btn-primary ">{highlightRectangles ? "Hide" : "Show"} boundary</button>
-                </p>
-            </div>
-            <div>
+            <div className='result-data'><b><h1>Mesurements Results</h1></b></div>
+            <div className='result-data'><p><b>Computational Efficiency: </b>{layoutDuration}</p></div>
+            <div className='result-data'><p><b>Total Node Count: </b>{layoutDuration}</p></div>
+            <div className='result-data'><p><b>Total Edge Count: </b>{layoutDuration}</p></div>
+            <div className='result-data'>
                 <p><b>Edge Lengths </b></p>
                 <p>Average Edge Length: {edgeLengths.average.toFixed(2)} px</p>
                 <p>Longest Edge Length: {edgeLengths.longest.toFixed(2)} px</p>
                 <p>Shortest Edge Length: {edgeLengths.shortest.toFixed(2)} px</p>
             </div>
-        </nav>
+
+            <div className='result-data'><p><b>Edge Crossing Count: </b>{measurement.edgeCrossingCount}</p></div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className='result-data'>
+                <p style={{ margin: 0 }}>
+                    <b>Node occlusions: </b>{measurement.nodeOcclusionCount}
+                </p>
+                <a onClick={() => setShowEdit(!showEdit)} className="btn-link">
+                    <i className="fas fa-cog"></i>
+                </a>
+            </div>
+            {
+                showEdit && (
+                    <div className='settings-div'>
+                        <label for="widthPadding">Width:</label>
+                        <input type="number" id="widthPadding" name="widthPadding" value={widthPadding} onChange={handleWidthChange} />
+                        <label for="heightPadding">Height:</label>
+                        <input type="number" id="heightPadding" name="heightPadding" value={heightPadding} onChange={handleHeightChange} />
+                        <button onClick={toggleHighlight} className="btn btn-primary ">{highlightRectangles ? "Hide" : "Show"} boundary</button>
+                    </div>
+                )
+            }
+
+            <div className='result-data'><p><b>Edge Node Overlap: </b>{layoutDuration}</p></div>
+            <div className='result-data'><p><b>Aspect Ratio: </b>{layoutDuration}</p></div>
+            <div className='result-data'><p><b>Minimum Distance Between Nodes: </b>{layoutDuration}</p></div>
+
+            <div className='result-data'><b><h1>Analytical Results</h1></b></div>
+            <div className='metrics'>
+                <b><h1>Metrics</h1></b>
+                <div className=''><p><b>Node Count: </b><input type='number' min="0" max="1" value={metrics.node_count} /></p></div>
+                <div className=''><p><b>Edge Count: </b><input type='number' min="0" max="1" value={metrics.edge_count} /></p></div>
+                <div className=''><p><b>Node occlusions: </b><input type='number' min="0" max="1" value={metrics.node_occlusion} /></p></div>
+                <div className=''><p><b>Edge Crossing: </b><input type='number' min="0" max="1" value={metrics.edge_crossing} /></p></div>
+                <div className=''><p><b>Edge Node Overlap: </b><input type='number' min="0" max="1" value={metrics.edge_node_overlap} /></p></div>
+                <div className=''><p><b>Shortest Edge Length: </b><input type='number' min="0" max="1" value={metrics.shortest_edge_length} /></p></div>
+                <div className=''><p><b>Average Edge Length: </b><input type='number' min="0" max="1" value={metrics.average_edge_length} /></p></div>
+                <div className=''><p><b>Longest Edge Length: </b><input type='number' min="0" max="1" value={metrics.longest_edge_length} /></p></div>
+                <div className=''><p><b>Minimum Distance Between Nodes: </b><input type='number' min="0" max="1" value={metrics.minimum_distance_between_node} /></p></div>
+                <div className=''><p><b>Aspect Ratio: </b><input type='number' min="0" max="1" value={metrics.aspect_ratio} /></p></div>
+            </div>
+            <div className='result-data' ><b><h1 style={{ color: 'green' }}>State Chart Score:</h1></b></div>
+        </nav >
     );
 }
 

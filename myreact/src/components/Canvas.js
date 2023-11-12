@@ -1,9 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 import cytoscape from 'cytoscape';
 import gridGuide from 'cytoscape-grid-guide';
-import Quadtree from '../utils/Quadtree';
-import Rectangle from '../utils/Rectangle';
 
 cytoscape.use(gridGuide);
 
@@ -11,12 +9,6 @@ const cellSize = 20;
 
 function Canvas({ measurement, setMeasurement, setCy, updateContainerHeight, highlightRectangles }) {
     const cyRef = useRef(null);
-
-    const canvasWidth = 800;
-    const canvasHeight = 600;
-
-    const boundary = new Rectangle(canvasWidth / 2, canvasHeight / 2, canvasWidth / 2, canvasHeight / 2);
-    const quadtree = new Quadtree(boundary, 4); // Capacity can be adjusted
 
     useEffect(() => {
         if (cyRef.current) {
@@ -53,7 +45,7 @@ function Canvas({ measurement, setMeasurement, setCy, updateContainerHeight, hig
             cy.gridGuide({
                 snapToGridDuringDrag: true,
                 drawGrid: true,
-                gridColor: '#ff0000',
+                gridColor: '#aeaeae',
                 gridSpacing: cellSize,
                 zoomThreshold: 0.5
             });
@@ -67,7 +59,7 @@ function Canvas({ measurement, setMeasurement, setCy, updateContainerHeight, hig
 
     return (
         <div className="p-3" style={{ flexGrow: 1, height: 'calc(100vh - 60px)', position: 'relative', maxHeight: 'calc(100vh - 60px)', maxWidth: 'calc(100dvw - 200px)' }}>
-            <div ref={cyRef} style={{ width: '100%', height: '100%' }}></div>
+            <div ref={cyRef} style={{ width: '100%', height: '100%', border: '1px solid #3a3a3a' }}></div>
         </div>
     );
 }
