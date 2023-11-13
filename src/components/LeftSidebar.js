@@ -132,10 +132,14 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
         xmlDoc.querySelectorAll('mxCell[parent="1"][vertex="1"]').forEach((node) => {
             const id = node.getAttribute('id');
             const label = node.getAttribute('value');
-            const x = parseFloat(node.querySelector('mxGeometry').getAttribute('x'));
-            const y = parseFloat(node.querySelector('mxGeometry').getAttribute('y'));
+            const geometry = node.querySelector('mxGeometry');
+            const x = parseFloat(geometry.getAttribute('x'));
+            const y = parseFloat(geometry.getAttribute('y'));
 
-            json.nodes.push({ data: { id, label }, position: { x, y } });
+            json.nodes.push({
+                data: { id, label },
+                position: { x, y } // Position is now correctly formatted
+            });
         });
 
         // Extract edges
@@ -144,16 +148,18 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
             const source = edge.getAttribute('source');
             const target = edge.getAttribute('target');
 
-            json.edges.push({ data: { id, source, target } });
+            json.edges.push({
+                data: { id, source, target },
+            });
         });
 
-        cy.batch(function () {
+        cy.batch(() => {
             cy.elements().remove();
             console.log(json);
             cy.add(json);
-            cy.layout({ name: 'grid' }).run();
         });
     };
+
 
     // Function to load a Draw.io XML file and apply it to the Cytoscape
     const loadDrawIoXML = (event) => {
