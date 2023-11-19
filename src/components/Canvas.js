@@ -7,7 +7,7 @@ cytoscape.use(gridGuide);
 
 const cellSize = 20;
 
-function Canvas({ measurement, setMeasurement, setCy, updateContainerHeight, highlightRectangles }) {
+function Canvas({ setCy, updateContainerHeight }) {
     const cyRef = useRef(null);
 
     useEffect(() => {
@@ -49,7 +49,6 @@ function Canvas({ measurement, setMeasurement, setCy, updateContainerHeight, hig
                 gridSpacing: cellSize,
                 zoomThreshold: 0.5
             });
-
 
             setCy(cy);
             updateContainerHeight(cyRef.current.clientHeight);

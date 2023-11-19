@@ -13,12 +13,6 @@ function App() {
         setContainerHeight(height);
     };
 
-    const [measurement, setMeasurement] = useState({
-        rudimentaryOcclusionCount: 0,
-        quadtreeOcclusionCount: 0,
-        edgeCrossingCount: 0
-    });
-
     const [cy, setCy] = useState(null);
 
     const [highlightRectangles, setHighlightRectangles] = useState(false);
@@ -35,17 +29,12 @@ function App() {
                 <LeftSidebar
                     cy={cy}
                     containerHeight={containerHeight}
-                    measurement={measurement}
-                    setMeasurement={setMeasurement}
                     toggleHighlight={toggleHighlight}
                     highlightRectangles={highlightRectangles}
                     setCy={setCy} />
                 <Canvas
-                    measurement={measurement}
-                    setMeasurement={setMeasurement}
                     setCy={setCy}
                     updateContainerHeight={updateContainerHeight}
-                    highlightRectangles={highlightRectangles}
                 />
             </div>
         </div>

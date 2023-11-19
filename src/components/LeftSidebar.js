@@ -7,7 +7,7 @@ import dagre from 'cytoscape-dagre';
 cytoscape.use(dagre);
 
 
-function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }) {
+function LeftSidebar({ cy, containerHeight, setCy }) {
 
     const fileInputRef = useRef(null);
     const [layoutDuration, setLayoutDuration] = useState('');
@@ -17,9 +17,11 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
     const [showEdit, setShowEdit] = useState(false);
     const [nodeCount, setNodeCount] = useState(0);
     const [edgeCount, setEdgeCount] = useState(0);
-    const [edgeNodeOverlap, setEdgeNodeOverlap] = useState(8);
+    const [edgeCrossingCount, setEdgeCrossingCount] = useState(0);
+    const [nodeOcclusionCount, setNodeOcclusionCount] = useState(0);
+    const [edgeNodeOverlap, setEdgeNodeOverlap] = useState(0);
     const [aspectRatio, setAspectRatio] = useState(0);
-    const [minimumDistanceBetweenNode, setMinimumDistanceBetweenNode] = useState('30px');
+    const [minimumDistanceBetweenNode, setMinimumDistanceBetweenNode] = useState(0);
     const [edgeLengths, setEdgeLengths] = useState({
         average: 0,
         longest: 0,
@@ -38,6 +40,12 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
         aspect_ratio: 1,
         minimum_distance_between_node: 1,
     });
+
+
+    // setMetrics(prevMetrics => ({
+    //     ...prevMetrics,
+    //     node_count: 0,
+    // }));
 
     // Event handlers to update the state
     const handleWidthChange = (event) => {
@@ -77,11 +85,11 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
         reader.onload = (e) => {
             try {
                 const result = e.target.result;
-                console.log("File Content:", result);  // Log file content for debugging
+                //console.log("File Content:", result);  // Log file content for debugging
 
                 if (result) {
                     const json = JSON.parse(result);
-                    console.log("Parsed JSON:", json);  // Log parsed JSON for debugging
+                    //console.log("Parsed JSON:", json);  // Log parsed JSON for debugging
 
                     if (cy && json.elements) {
                         cy.batch(() => {
@@ -276,6 +284,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
         countNodeOcclusions(cy, widthPaddingNum, heightPaddingNum);
         setEdgeLengths(calculateEdgeLengths(cy));
         calculateMinimumDistanceBetweenNodes(cy);
+        countEdgeNodeOverlaps(cy, widthPaddingNum, heightPaddingNum);
     };
 
     const calculateMinimumDistanceBetweenNodes = (cyInstance) => {
@@ -340,24 +349,17 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
     const countEdgeCrossings = (cy) => {
         let crossings = 0;
         const edges = cy.edges();
-
-
-        console.log("edges**", cy.on)
         for (let i = 0; i < edges.length - 1; i++) {
             for (let j = i + 1; j < edges.length; j++) {
                 const edge1 = edges[i];
                 const edge2 = edges[j];
-                console.log("crossings", crossings)
                 if (edgesIntersect(edge1, edge2)) {
                     crossings++;
                 }
             }
         }
 
-        setMeasurement(prevMeasurement => ({
-            ...prevMeasurement,
-            edgeCrossingCount: crossings,
-        }));
+        setEdgeCrossingCount(crossings);
     };
 
 
@@ -373,10 +375,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
             }
         }
 
-        setMeasurement((prevMeasurement) => ({
-            ...prevMeasurement,
-            nodeOcclusionCount: occlusions,
-        }));
+        setNodeOcclusionCount(occlusions);
     };
 
     // Helper function to determine if two nodes overlap
@@ -473,7 +472,7 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
             }
 
             // Check for shortest edge
-            if (length < shortest && length != 0) {
+            if (length < shortest && length !== 0) {
                 shortest = length;
             }
         });
@@ -487,7 +486,83 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
         };
     };
 
+    const countEdgeNodeOverlaps = (cy, widthPadding, heightPadding) => {
+        let overlaps = 0;
+        const nodes = cy.nodes();
+        const edges = cy.edges();
 
+        edges.forEach((edge) => {
+            const sourceNode = edge.source();
+            const targetNode = edge.target();
+
+            nodes.forEach((node) => {
+                // Avoid checking an edge against its own source or target node
+                if (node !== sourceNode && node !== targetNode) {
+                    if (edgeNodeOverlapExist(node, edge, widthPadding, heightPadding)) {
+                        overlaps++;
+                    }
+                }
+            });
+        });
+
+        setEdgeNodeOverlap(overlaps);
+    };
+
+    // Helper function to determine if an edge overlaps with a node
+    const edgeNodeOverlapExist = (node, edge, widthPadding, heightPadding) => {
+        const nodeBox = node.renderedBoundingBox();
+        const sourcePosition = edge.source().renderedPosition();
+        const targetPosition = edge.target().renderedPosition();
+
+        // Define the line using the source and target positions
+        const edgeLine = {
+            x1: sourcePosition.x,
+            y1: sourcePosition.y,
+            x2: targetPosition.x,
+            y2: targetPosition.y
+        };
+        // Inflate the node's bounding box by widthPadding and heightPadding
+        const inflatedNodeBox = {
+            x1: nodeBox.x1 - widthPadding,
+            y1: nodeBox.y1 - heightPadding,
+            x2: nodeBox.x2 + widthPadding,
+            y2: nodeBox.y2 + heightPadding
+        };
+
+        // Check if the edge's line intersects with the inflated node's bounding box
+        // This requires a line-box intersection check, which is not trivial and needs to be implemented
+        return lineIntersectsBox(edgeLine, inflatedNodeBox);
+    };
+
+    // Helper function to check if line intersects box
+    const lineIntersectsBox = (line, box) => {
+        const { x1, y1, x2, y2 } = line;
+        const { x1: left, y1: top, x2: right, y2: bottom } = box;
+
+        let t0 = 0, t1 = 1;
+        const deltaX = x2 - x1;
+        const deltaY = y2 - y1;
+
+        const p = [-deltaX, deltaX, -deltaY, deltaY];
+        const q = [x1 - left, right - x1, y1 - top, bottom - y1];
+
+        for (let i = 0; i < 4; i++) {
+            if (p[i] === 0) {
+                if (q[i] < 0) return false; // Parallel line outside of box
+            } else {
+                const t = q[i] / p[i];
+                if (p[i] < 0) {
+                    if (t > t1) return false; // Beyond segment
+                    if (t > t0) t0 = t; // Trim line start
+                } else {
+                    if (t < t0) return false; // Beyond segment
+                    if (t < t1) t1 = t; // Trim line end
+                }
+            }
+        }
+
+        return t0 <= t1;
+    };
 
     return (
         <nav className="bg-light p-3 left-sidebar shadow-sm" style={{ width: '280px', maxHeight: "calc(100dvh - 60px)", overflow: "auto" }}>
@@ -555,13 +630,13 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
                 <p>Shortest Edge Length: {edgeLengths.shortest.toFixed(2)} px</p>
             </div>
 
-            <div className='result-data'><p><b>Edge Crossing Count: </b>{measurement.edgeCrossingCount}</p></div>
+            <div className='result-data'><p><b>Edge Crossing Count: </b>{edgeCrossingCount}</p></div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className='result-data'>
                 <p style={{ margin: 0 }}>
-                    <b>Node occlusions: </b>{measurement.nodeOcclusionCount}
+                    <b>Node occlusions: </b>{nodeOcclusionCount}
                 </p>
-                <a onClick={() => setShowEdit(!showEdit)} className="btn-link">
+                <a onClick={() => setShowEdit(!showEdit)} className="btn-link" href={() => false}>
                     <i className="fas fa-cog"></i>
                 </a>
             </div>
@@ -583,16 +658,16 @@ function LeftSidebar({ cy, containerHeight, measurement, setMeasurement, setCy }
             <div className='result-data'><b><h1>Analytical Results</h1></b></div>
             <div className='metrics'>
                 <b><h1>Metrics</h1></b>
-                <div className=''><p><b>Node Count: </b><input type='number' min="0" max="1" value={metrics.node_count} /></p></div>
-                <div className=''><p><b>Edge Count: </b><input type='number' min="0" max="1" value={metrics.edge_count} /></p></div>
-                <div className=''><p><b>Node occlusions: </b><input type='number' min="0" max="1" value={metrics.node_occlusion} /></p></div>
-                <div className=''><p><b>Edge Crossing: </b><input type='number' min="0" max="1" value={metrics.edge_crossing} /></p></div>
-                <div className=''><p><b>Edge Node Overlap: </b><input type='number' min="0" max="1" value={metrics.edge_node_overlap} /></p></div>
-                <div className=''><p><b>Shortest Edge Length: </b><input type='number' min="0" max="1" value={metrics.shortest_edge_length} /></p></div>
-                <div className=''><p><b>Average Edge Length: </b><input type='number' min="0" max="1" value={metrics.average_edge_length} /></p></div>
-                <div className=''><p><b>Longest Edge Length: </b><input type='number' min="0" max="1" value={metrics.longest_edge_length} /></p></div>
-                <div className=''><p><b>Minimum Distance Between Nodes: </b><input type='number' min="0" max="1" value={metrics.minimum_distance_between_node} /></p></div>
-                <div className=''><p><b>Aspect Ratio: </b><input type='number' min="0" max="1" value={metrics.aspect_ratio} /></p></div>
+                <div className=''><p><b>Node Count: </b><input type='number' min="0" max="1" defaultValue={metrics.node_count} /></p></div>
+                <div className=''><p><b>Edge Count: </b><input type='number' min="0" max="1" defaultValue={metrics.edge_count} /></p></div>
+                <div className=''><p><b>Node occlusions: </b><input type='number' min="0" max="1" defaultValue={metrics.node_occlusion} /></p></div>
+                <div className=''><p><b>Edge Crossing: </b><input type='number' min="0" max="1" defaultValue={metrics.edge_crossing} /></p></div>
+                <div className=''><p><b>Edge Node Overlap: </b><input type='number' min="0" max="1" defaultValue={metrics.edge_node_overlap} /></p></div>
+                <div className=''><p><b>Shortest Edge Length: </b><input type='number' min="0" max="1" defaultValue={metrics.shortest_edge_length} /></p></div>
+                <div className=''><p><b>Average Edge Length: </b><input type='number' min="0" max="1" defaultValue={metrics.average_edge_length} /></p></div>
+                <div className=''><p><b>Longest Edge Length: </b><input type='number' min="0" max="1" defaultValue={metrics.longest_edge_length} /></p></div>
+                <div className=''><p><b>Minimum Distance Between Nodes: </b><input type='number' min="0" max="1" defaultValue={metrics.minimum_distance_between_node} /></p></div>
+                <div className=''><p><b>Aspect Ratio: </b><input type='number' min="0" max="1" defaultValue={metrics.aspect_ratio} /></p></div>
             </div>
             <div className='result-data' ><b><h1 style={{ color: 'green' }}>State Chart Score:</h1></b></div>
         </nav >
