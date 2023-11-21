@@ -77,7 +77,7 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
 
     const loadCytoscapeJsonFromFile = (file) => {
         if (!file) {
-            alert('Please select a file.');
+            alert('Please select a file with standard JSON.');
             return;
         }
 
@@ -95,7 +95,7 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
                         cy.batch(() => {
                             cy.elements().remove();
                             cy.add(json.elements);
-                            cy.layout({ name: 'grid' }).run();
+                            cy.layout({ name: 'dagre' }).run();
                         });
                     } else {
                         if (!cy) {
@@ -370,7 +370,11 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
         for (let i = 0; i < nodes.length - 1; i++) {
             for (let j = i + 1; j < nodes.length; j++) {
                 if (nodesOverlap(nodes[i], nodes[j], widthPadding, heightPadding)) {
+                    nodes[i].style('background-color', 'red');
+                    nodes[j].style('background-color', 'red');
                     occlusions++;
+                } else {
+                    nodes[j].style('background-color', '#66ccff');
                 }
             }
         }
@@ -564,14 +568,54 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
         return t0 <= t1;
     };
 
+    let nodeCounter = 0;
+    const addStateToCy = () => {
+        var newStateId = 'State' + Date.now();
+
+        let xPosition = (nodeCounter % 5) * 150 + 100;  // 150 is the distance between nodes, change as needed
+        let yPosition = Math.floor(nodeCounter / 5) * 150 + 100;
+
+        cy.add({ data: { id: newStateId, label: 'State' }, position: { x: xPosition, y: yPosition } });
+
+        nodeCounter++;  // Increment the counter for the next node
+    };
+
+    var selectedElement = null;
+    var selectedsecondElement = null;
+    const addTransitionToCy = () => {
+        if (selectedElement === null) {
+            alert('Select a source state first.');
+            return;
+        }
+        if (selectedsecondElement === null) {
+            alert('Select a targer state first.');
+            return;
+        }
+        var transitionId = 'Transition' + Date.now();
+        cy.add({ data: { id: transitionId, source: selectedElement.id(), target: selectedsecondElement.id() } });
+        selectedElement = null;
+        selectedsecondElement = null;
+    };
+
+    if (cy) {
+        cy.on('tap', 'node', function (e) {
+            var node = e.target;
+            if (selectedElement === null) {
+                selectedElement = node;
+            } else if (selectedElement != null && selectedElement != node && selectedsecondElement === null) {
+                selectedsecondElement = node;
+            }
+        });
+    }
+
     return (
         <nav className="bg-light p-3 left-sidebar shadow-sm" style={{ width: '280px', maxHeight: "calc(100dvh - 60px)", overflow: "auto" }}>
             <ul className="nav flex-column">
                 <li className="nav-item border-top mb-2">
-                    <button id="addState" className="btn btn-primary ">Add State</button>
+                    <button id="addState" onClick={addStateToCy} className="btn btn-primary ">Add State</button>
                 </li>
                 <li className="nav-item border-top mb-2">
-                    <button id="addTransition" className="btn btn-primary ">Add Transition</button>
+                    <button id="addTransition" onClick={addTransitionToCy} className="btn btn-primary ">Add Transition</button>
                 </li>
                 <li className="nav-item border-top mb-2">
                     <button onClick={() => changeLayout('circle')} className="btn btn-secondary ">Circular Layout</button>

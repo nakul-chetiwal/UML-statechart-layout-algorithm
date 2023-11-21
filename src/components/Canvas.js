@@ -33,11 +33,6 @@ function Canvas({ setCy, updateContainerHeight }) {
                         }
                     }
                 ],
-
-                layout: {
-                    name: 'grid',
-                    rows: 1
-                },
                 userZoomingEnabled: false,
                 // zoomingEnabled: false
             });
