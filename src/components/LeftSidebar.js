@@ -294,9 +294,9 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
 
         //Graph Score
         let score = 0;
-        score += metrics.node_occlusion * (1 / nodeOcclusionCount);
-        score += metrics.edge_crossing * (1 / edgeCrossingCount);
-        score += metrics.edge_node_overlap * (1 / edgeNodeOverlap);
+        score += nodeOcclusionCount ? (metrics.node_occlusion * (1 / nodeOcclusionCount)) : 0;
+        score += edgeCrossingCount ? (metrics.edge_crossing * (1 / edgeCrossingCount)) : 0;
+        score += edgeNodeOverlap ? (metrics.edge_node_overlap * (1 / edgeNodeOverlap)) : 0;
         score += metrics.shortest_edge_length * (1 / edgeLengths.shortest);
         score += metrics.longest_edge_length * (1 / edgeLengths.longest);
         score += metrics.average_edge_length * (1 / edgeLengths.average);
