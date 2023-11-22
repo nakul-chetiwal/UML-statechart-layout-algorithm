@@ -22,6 +22,7 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
     const [edgeNodeOverlap, setEdgeNodeOverlap] = useState(0);
     const [aspectRatio, setAspectRatio] = useState(0);
     const [minimumDistanceBetweenNode, setMinimumDistanceBetweenNode] = useState(0);
+    const [graphScore, setGraphScore] = useState(0);
     const [edgeLengths, setEdgeLengths] = useState({
         average: 0,
         longest: 0,
@@ -290,6 +291,21 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
         setEdgeLengths(calculateEdgeLengths(cy));
         calculateMinimumDistanceBetweenNodes(cy);
         countEdgeNodeOverlaps(cy, widthPaddingNum, heightPaddingNum);
+
+        //Graph Score
+        let score = 0;
+        score += metrics.node_occlusion * (1 / nodeOcclusionCount);
+        score += metrics.edge_crossing * (1 / edgeCrossingCount);
+        score += metrics.edge_node_overlap * (1 / edgeNodeOverlap);
+        score += metrics.shortest_edge_length * (1 / edgeLengths.shortest);
+        score += metrics.longest_edge_length * (1 / edgeLengths.longest);
+        score += metrics.average_edge_length * (1 / edgeLengths.average);
+        score += metrics.minimum_distance_between_node * minimumDistanceBetweenNode;
+        score += metrics.node_count * nodeCount;
+        score += metrics.edge_count * edgeCount;
+        score += metrics.aspect_ratio * aspectRatio;
+        setGraphScore(Number(score.toFixed(2)));
+
     };
 
     const calculateMinimumDistanceBetweenNodes = (cyInstance) => {
@@ -371,6 +387,7 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
     const countNodeOcclusions = (cy, widthPadding, heightPadding) => {
         let occlusions = 0;
         const nodes = cy.nodes();
+        nodes.style('background-color', '#66ccff');
 
         for (let i = 0; i < nodes.length - 1; i++) {
             for (let j = i + 1; j < nodes.length; j++) {
@@ -378,8 +395,6 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
                     nodes[i].style('background-color', 'red');
                     nodes[j].style('background-color', 'red');
                     occlusions++;
-                } else {
-                    nodes[j].style('background-color', '#66ccff');
                 }
             }
         }
@@ -718,7 +733,7 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
                 <div className=''><p><b>Minimum Distance Between Nodes: </b><input type='number' min="0" max="1" defaultValue={metrics.minimum_distance_between_node} /></p></div>
                 <div className=''><p><b>Aspect Ratio: </b><input type='number' min="0" max="1" defaultValue={metrics.aspect_ratio} /></p></div>
             </div>
-            <div className='result-data' ><b><h1 style={{ color: 'green' }}>State Chart Score:</h1></b></div>
+            <div className='result-data' ><b><h1 style={{ color: 'green' }}>State Chart Score: {graphScore}</h1></b></div>
         </nav >
     );
 }
