@@ -95,7 +95,12 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
                         cy.batch(() => {
                             cy.elements().remove();
                             cy.add(json.elements);
-                            cy.layout({ name: 'dagre' }).run();
+                            if (!(json.elements.nodes.every(node =>
+                                node.position &&
+                                node.position.x !== undefined &&
+                                node.position.y !== undefined))) {
+                                cy.layout({ name: 'dagre' }).run();
+                            }
                         });
                     } else {
                         if (!cy) {
