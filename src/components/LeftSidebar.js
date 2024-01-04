@@ -42,6 +42,26 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
         minimum_distance_between_node: 1,
     });
 
+    const [layerHeight, setLayerHeight] = useState(100);
+    const [nodeSpacing, setNodeSpacing] = useState(500);
+    const [showSCSettings, setShowSCSettings] = useState(false);
+
+
+    const handleLayerHeightChange = (event) => {
+        setLayerHeight(Number(event.target.value));
+    };
+
+    const handleNodeSpacingChange = (event) => {
+        setNodeSpacing(Number(event.target.value));
+    };
+
+    const handleToggleSettings = () => {
+        setShowSCSettings(!showSCSettings);
+    };
+
+    const handleApplyLayout = () => {
+        scAutoLayout(layerHeight, nodeSpacing);
+    };
 
     // setMetrics(prevMetrics => ({
     //     ...prevMetrics,
@@ -628,28 +648,152 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
         });
     }
 
+    const scAutoLayout = (userLayerHeight, userNodeSpacing) => {
+        let nodes = cy.nodes();
+        const canvasWidth = cy.width();
+        const canvasHeight = cy.height();
+        const nodeCount = nodes.length;
+        const horizontalSpacing = canvasWidth / (nodeCount + 1);
+        // Helper function to find root nodes
+        function findRoots() {
+            let rootNodes = [];
+
+            cy.nodes().each(function (node) {
+                let incomingEdges = node.connectedEdges('edge[target = "' + node.id() + '"]');
+                let indegree = incomingEdges.length;
+
+                if (indegree === 0) {
+                    rootNodes.push(node);
+                }
+            });
+            if (!rootNodes.length) {
+                let maxOutdegree = -1;
+                cy.nodes().each(function (node) {
+                    let outdegree = node.outdegree();
+                    if (outdegree > maxOutdegree) {
+                        maxOutdegree = outdegree;
+                        rootNodes = node;
+                    }
+                });
+            }
+            console.log('Root Nodes:', rootNodes);
+            return rootNodes;
+        }
+
+        // Function to recursively identify layers
+        function identifyLayers(roots) {
+            let layers = [];
+            let visited = new Set();
+
+            function visit(node, depth) {
+                if (visited.has(node)) return;
+                visited.add(node);
+
+                while (layers.length <= depth) {
+                    layers.push([]);
+                }
+
+                layers[depth].push(node);
+
+                let children = node.outgoers().nodes();
+                children.forEach(child => visit(child, depth + 1));
+            }
+
+            roots.forEach(root => visit(root, 0));
+
+            return layers;
+        }
+
+        // Function to assign initial positions
+        function assignInitialPositions(layers) {
+            // Calculate the middle of the canvas for x-coordinate
+            const canvasWidth = cy.width();
+            const middleX = canvasWidth / 2;
+
+            // Starting y-coordinate (small offset from the top of the canvas)
+            let startY = 0;
+            const layerHeight = userLayerHeight;
+            const nodeSpacing = userNodeSpacing;
+            let y;
+            layers.forEach((layer, index) => {
+                // Calculate x-coordinate so that nodes are centered around middleX
+                const layerWidth = layer.length * nodeSpacing;
+                let startX = middleX - layerWidth / 2 + nodeSpacing / 2;
+
+                layer.forEach(node => {
+                    // Assign position to nodes
+                    // Roots are centered using startX, other layers are distributed evenly
+                    const x = index === 0 ? middleX : startX;
+                    if (startY) {
+                        y = startY;
+                        startY = 0;
+                    }
+                    else {
+                        y = index * layerHeight;
+                    }
+                    node.position({ x, y });
+                    startX += nodeSpacing;
+                });
+            });
+        }
+
+        // Start of the main layout function
+        const roots = findRoots();
+        if (roots.length === 0) {
+            alert('No root nodes found. A graph should have at least one root node.');
+            return;
+        }
+
+        const layers = identifyLayers(roots);
+        assignInitialPositions(layers);
+        cy.fit();
+    }
+
     return (
         <nav className="bg-light p-3 left-sidebar shadow-sm" style={{ width: '280px', maxHeight: "calc(100dvh - 60px)", overflow: "auto" }}>
             <ul className="nav flex-column">
-                <li className="nav-item border-top mb-2">
+                <li className="nav-item border-top">
                     <button id="addState" onClick={addStateToCy} className="btn btn-primary ">Add State</button>
                 </li>
-                <li className="nav-item border-top mb-2">
+                <li className="nav-item border-top">
                     <button id="addTransition" onClick={addTransitionToCy} className="btn btn-primary ">Add Transition</button>
                 </li>
-                <li className="nav-item border-top mb-2">
+                <li className="nav-item border-top">
                     <button onClick={() => changeLayout('circle')} className="btn btn-secondary ">Circular Layout</button>
                 </li>
-                <li className="nav-item border-top mb-2">
+                <li className="nav-item border-top">
                     <button onClick={() => changeLayout('dagre')} className="btn btn-secondary ">DAG Layout</button>
                 </li>
-                <li className="nav-item border-top mb-2">
+                <li className="nav-item border-top">
                     <button onClick={() => changeLayout('grid')} className="btn btn-secondary ">Grid Layout</button>
                 </li>
-                <li className="nav-item border-top mb-2">
-                    <button onClick={() => changeLayout('breadthfirst')} className="btn btn-warning">SC Auto Layout</button>
+                <li className="nav-item border-top" style={{ width: '100%' }}>
+                    <button onClick={handleApplyLayout} className="btn btn-warning" style={{ width: '90%' }}>SC Auto Layout</button>
+                    <a onClick={handleToggleSettings} style={{ cursor: 'pointer', width: '8%', textAlign: 'center' }} className="btn-link" href={() => false}>
+                        <i className="fas fa-cog"></i>
+                    </a>
+                    {showSCSettings && (
+                        <div className='border p-2' style={{ borderColor: 'black !important' }}>
+                            <label for="layerHeight">Layer Height:</label>
+                            <input
+                                id="layerHeight"
+                                type="number"
+                                value={layerHeight}
+                                onChange={handleLayerHeightChange}
+                                placeholder="Layer Height"
+                            />
+                            <label for="nodeSpacing">Node Spacing:</label>
+                            <input
+                                id="nodeSpacing"
+                                type="number"
+                                value={nodeSpacing}
+                                onChange={handleNodeSpacingChange}
+                                placeholder="Node Spacing"
+                            />
+                        </div>
+                    )}
                 </li>
-                <li className="nav-item border-top mb-2">
+                <li className="nav-item border-top">
                     <input
                         type="file"
                         ref={fileInputRef}
@@ -659,7 +803,7 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
                     />
                     <button onClick={handleLoadJsonClick} className="btn btn-success " >Import Standard JSON</button>
                 </li>
-                <li className="nav-item border-top mb-2">
+                <li className="nav-item border-top">
                     <input
                         type="file"
                         id="graphVizJsonFileInput"
@@ -669,7 +813,7 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
                     />
                     <button onClick={handleGraphVizJsonFileInputClick} className="btn btn-success ">Import Graphviz JSON</button>
                 </li>
-                <li className="nav-item border-top mb-2">
+                <li className="nav-item border-top">
                     <input
                         type="file"
                         id="drawIoXMLFileInput"
@@ -683,10 +827,12 @@ function LeftSidebar({ cy, containerHeight, setCy }) {
 
             <button onClick={showMesurements} className="btn btn-primary ">Show Mesurements</button>
 
-            <div className='result-data'><b><h1>Mesurements Results</h1></b></div>
-            <div className='result-data'><p><b>Computational Efficiency: </b>{layoutDuration}</p></div>
+            <div className='result-data'><b><h1>Graph Information</h1></b></div>
             <div className='result-data'><p><b>Total Node Count: </b>{nodeCount}</p></div>
             <div className='result-data'><p><b>Total Edge Count: </b>{edgeCount}</p></div>
+            <div className='result-data'><p><b>Computational Efficiency: </b>{layoutDuration}</p></div>
+
+            <div className='result-data'><b><h1>Mesurements Results</h1></b></div>
             <div className='result-data'>
                 <p><b>Edge Lengths </b></p>
                 <p>Average Edge Length: {edgeLengths.average.toFixed(2)} px</p>
