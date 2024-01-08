@@ -1,0 +1,56 @@
+Algorithm SCAutoLayout
+Input: stateChart (A graph with nodes and edges with existing layout)
+Output: layoutStatechart (A graph with Auto layout)
+
+Initialization Statechart with existinglayout and call SCAutoLayout Algoritham
+layoutStatechart = SCAutoLayout(stateChart)
+
+Start Function SCAutoLayout(stateChart):
+    Step 1: Fetch all the nodes and its edges
+    Step 2: Identify root nodes: node which has no incoming edges is root nodes. If there are nultiple root nodes, then consider root node having higher number of outgoing edges.
+    Step 3: Identify layers with statechart and roots (Algoritham 2)
+            layers = identifyLayers(stateChart, roots)
+    Step 4: Assign initial positions based on layers (Algoritham 3)
+            newNodes = assignInitialPositions(layers)
+    Step 5: Optimize layers to reduce edge crossings
+    Step 6: Optimize layers to reduce node occlusion
+    Step 7: Maintain aspect ratio
+    Step 8: Add newNodes and newEdges in layoutStatechart
+    return layoutStatechart
+End
+
+
+Algorithm identifyLayers
+Input: stateChart (A graph with nodes and edges), roots
+Output: layers (A list of lists, where each sublist represents a layer of nodes)
+
+Start Function identifyLayers(stateChart, roots):
+    step 1: Initialize layer which is array of array and visited nodes as a blank array and create nodes array which has list of all nodes.
+    step 2: Create a recursive function for each node.
+    step 3: if node is already visited then skip it.
+    step 3: Find all the outgoing connected nodes and identify all the childerens of the node.
+    step 4: Recursivly Visit all children of the node.
+    step 5: Once all the childerens are visited, add the node in layer array.
+    step 6: Flag the node if it is visited. and repeat step 3 for all nodes.
+    step 7: Once all nodes have been visited, reverse the order of the collected nodes to get the correct topological sequence.
+    step 8: Organize the nodes into layers based on their dependencies, with the root nodes in the first layer and each subsequent layer containing nodes whose dependencies are satisfied by nodes in the preceding layers.
+    return layers = the list of layers of nodes
+End
+
+Algorithm assignInitialPositions
+Input: layers (A list of lists, where each sublist represents a layer of nodes)
+Output: nodes (array of nodes with its position)
+
+start function assignInitialPositions(layers)
+    step 1: Set Initial Node Coordinates and define X and Y
+    step 2: Define Node spacing
+    step 3: for each layer in layers
+    step 4: Add node spacing value in Y co-ordinates
+    step 5: assign new Y Co-ordinate value for all the nodes in same layer
+    step 6: for each nodes in layer
+    step 7: Add node spacing value in X co-ordinates
+    step 8: assign new X co-ordinated value to the node
+    step 9: Go to step 6 for next node
+    step 10: Go to step 3 for next layer
+    return nodes object with x and y position
+end

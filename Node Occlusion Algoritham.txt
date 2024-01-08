@@ -1,0 +1,10 @@
+Node Occlusion Algoritham:
+
+1. Start with zero overlaps: Assume initially that there are no overlaps among the nodes in the chart.
+2. Look at every node: Iterate throgh each node in the chart to check for any overlaps with others.
+3. Compare nodes in pairs: Compare each node with every other node, one pair at a time, to see if they are too close or overlapping.
+4. Check for closeness: For each pair, determine if they are touching or overlapping. It's like checking if two boxes are bumping into each other.
+   Consider extra space around nodes: Imagine each node has an invisible bounding box rectangle around it. We check if these rectangles touch or overlap, not just the nodes themselves.
+5. Identify overlapping pairs: If the bounding box rectangles around two nodes touch, we count this as an overlap.
+6. Mark overlapping nodes: Whenever we find nodes that are overlapping, we mark them in a special way (such as coloring them red) to show they are too close.
+7. Count all overlaps: Keep a counter for all the times nodes overlap or are too close to each other in the graph.

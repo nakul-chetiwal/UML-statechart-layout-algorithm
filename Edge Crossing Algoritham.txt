@@ -1,0 +1,21 @@
+Edge Crossing Algoritham
+Initialize a Counter: Set a counter to zero. This counter will keep track of the number of times edges cross each other.
+
+Get All Edges: Retrieve a list of all the edges in the graph.
+
+Compare Each Pair of Edges: For each edge in the list, compare it with every other edge. This is done by looping through the list of edges twice:
+
+The first loop picks the first edge.
+The second loop picks another edge to compare with the first one.
+Check for Intersection: For each pair of edges, check if they intersect. This involves several sub-steps:
+
+Find the start and end points of both edges.
+Use these points to determine if the two line segments formed by these edges intersect.
+Count Intersections: If two edges intersect, increase the counter by one.
+
+Calculate Intersection for Line Segments: To check if two line segments intersect, perform the following calculations:
+
+Calculate differences in x and y coordinates for both segments.
+Compute the determinant to see if the lines are parallel.
+If not parallel, calculate two parameters (t1 and t2) to check the intersection within the segment's length.
+Determine the Final Count: Once all pairs of edges have been compared, the counter reflects the total number of intersecting pairs of edges in the graph.

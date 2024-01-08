@@ -1,0 +1,19 @@
+DAG:
+
+Rank Assignment:
+Each node in the graph is assigned a rank (or level) in the hierarchy. This is typically done using a longest-path algorithm. Nodes without predecessors (i.e., nodes without incoming edges) are typically assigned the highest rank (e.g., rank 0).
+Layering Nodes:
+Nodes with the same rank are assigned to the same layer. This step organizes the nodes into horizontal layers, with each layer corresponding to a rank.
+In certain cases, long edges that span multiple layers are broken into segments with dummy nodes inserted at intermediate ranks. This helps maintain the layering structure.
+Crossing Reduction:
+One of the more complex parts of the algorithm involves reducing the number of crossings between edges. Dagre uses various heuristics and algorithms to reorder nodes within each layer to achieve this. The goal is to find an ordering of nodes within each layer that minimizes the number of times edges cross each other.
+Horizontal Positioning (Coordinate Assignment):
+After the nodes are ordered within layers to minimize crossings, the next step is to determine the x-coordinate (horizontal position) for each node.
+This step calculates the actual position of each node in a way that respects the previously determined layering and ordering. The algorithm takes into account node sizes and separation settings.
+Edge Routing:
+Edges are then routed between nodes. For straight-line edges, this is straightforward, but for edges with bends (like in hierarchical layouts), this involves calculating the path the edge takes from source to target.
+The algorithm ensures that edges flow according to the rank direction and adhere to the set edge separation.
+Final Layout
+The final layout is a result of the above steps, with each node positioned in a way that respects the hierarchical structure, minimizes edge crossings, and adheres to the graph configuration settings.
+
+Dagre's algorithm is complex and involves a number of graph theory and computational geometry concepts. The specific methods used for tasks like crossing reduction and coordinate assignment can vary and may involve iterative and heuristic approaches to handle the computational complexity and find a layout that is good enough, if not optimal. The end result is a layout that is generally well-suited for displaying hierarchical data and directed graphs in a clear and understandable manner.
